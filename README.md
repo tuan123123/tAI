@@ -37,4 +37,4 @@ Styling: Tailwind CSS
 
 State Management: React hooks
 
-Backend: FastAPI / LLM agent services
+Backend: FastAPI / LLM agent services 
