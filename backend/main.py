@@ -2,9 +2,19 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
-
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from tools import search_tool, wiki_tool, save_tool
 
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[""],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 load_dotenv()
 
 class ResearchResponse(BaseModel):
@@ -13,6 +23,10 @@ class ResearchResponse(BaseModel):
     sources: list[str]
     tools_used: list[str]
 
+class UserQuery(BaseModel):
+    query: str
+
+    
 llm = ChatOpenAI(model="gpt-5-nano")  
 
 agent = create_agent(
