@@ -21,16 +21,31 @@ export default function Home() {
     setLoading(true);
     setOutput(null);
 
-    // mock response and can wire fastapi later
-    await new Promise((r) => setTimeout(r, 500));
-    setOutput({
-      topic: query,
-      summary: "This is a mocked response..",
-      sources: ["https://example.com"],
-      tools_used: ["search", "wiki", "save"],
-    });
+    try{
+      const res = await fetch('/api/research', {
+        method: 'POST',
+        headers: { 'Content-Type' : 'application/json'},
+        body: JSON.stringify({query}),
+      });
 
-    setLoading(false);
+      if (!res.ok){
+        throw new Error(`Error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setOutput(data);
+    } catch(error){
+      console.error("Failed to fetch research:", error);
+      
+      setOutput({
+        topic: "Error",
+        summary: "Something went wrong while contacting the research agent. Please make sure the backend is running.",
+        sources: [],
+        tools_used: []
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

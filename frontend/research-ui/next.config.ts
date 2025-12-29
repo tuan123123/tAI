@@ -1,8 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
+  // Proxy configuration for FastAPI
+  async rewrites() {
+    return [
+      {
+        source: "/api/py/:path*",
+        destination: "http://127.0.0.1:8000/api/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
