@@ -1,21 +1,25 @@
+import os
+from pathlib import Path
+
 from dotenv import load_dotenv
-from pydantic import BaseModel
-from langchain_openai import ChatOpenAI
-from langchain.agents import create_agent
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
+from langchain.agents import create_agent
+
+
 from tools import search_tool, wiki_tool, save_tool
 
-app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[""],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-load_dotenv()
+# --- Robust .env loading ---
+env_path = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path)
+
+llm = ChatOpenAI(model="gpt-5-nano")
+
 
 class ResearchResponse(BaseModel):
     topic: str
@@ -23,24 +27,32 @@ class ResearchResponse(BaseModel):
     sources: list[str]
     tools_used: list[str]
 
+
 class UserQuery(BaseModel):
     query: str
 
-    
-llm = ChatOpenAI(model="gpt-5-nano")  
 
 agent = create_agent(
     model=llm,
     tools=[search_tool, wiki_tool, save_tool],
-    system_prompt=(
-        "You are a research assistant that produces structured research reports.\n"
-        "Use tools when helpful.\n"
-        "Always fill: topic, summary, sources, tools_used."
-    ),
-    response_format=ResearchResponse,  
+    response_format=ResearchResponse,
 )
 
-query = input("What can I help you research? ")
+app = FastAPI()
 
-result = agent.invoke({"messages": [{"role": "user", "content": query}]})
-print(result["structured_response"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.post("/api/research", response_model=ResearchResponse)
+async def run_research(user_input: UserQuery):
+    state = {"messages": [HumanMessage(content=user_input.query)]}
+
+    result = await agent.ainvoke(state)
+
+    return result["structured_response"]
