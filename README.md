@@ -1,7 +1,7 @@
 tAI
 
 tAI is a modern AI research agent interface built with Next.js App Router, React, and Tailwind CSS.
-It provides a simple UI for submitting research questions and receiving structured, agent-style outputs including summaries, sources, and tool traces.
+It provides a simple UI for submitting research questions and receiving structured, agent-style outputs including summaries, sources, and tool traces. 
 
 ✨ Features
 
