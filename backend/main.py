@@ -14,10 +14,8 @@ from langchain.agents import create_agent
 from tools import search_tool, wiki_tool, save_tool
 
 
-# --- Robust .env loading ---
-env_path = Path(__file__).parent / ".env"
-load_dotenv(dotenv_path=env_path)
 
+load_dotenv()
 llm = ChatOpenAI(model="gpt-5-nano")
 
 
