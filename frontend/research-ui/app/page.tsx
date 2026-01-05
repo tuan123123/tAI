@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
+
 
 type AgentOutput = {
   topic: string;
   summary: string;
   sources: string[];
   tools_used: string[];
+  image_b64?: string | null; // ✅ new
 };
 
 export default function Home() {
@@ -21,31 +24,37 @@ export default function Home() {
     setLoading(true);
     setOutput(null);
 
-    try{
-        const res = await fetch("http://127.0.0.1:8000/api/research", {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/research", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
       });
-      if (!res.ok){
+
+      if (!res.ok) {
         throw new Error(`Error: ${res.status}`);
       }
 
-      const data = await res.json();
+      const data = (await res.json()) as AgentOutput;
       setOutput(data);
-    } catch(error){
+    } catch (error) {
       console.error("Failed to fetch research:", error);
-      
+
       setOutput({
         topic: "Error",
-        summary: "Something went wrong while contacting the research agent. Please make sure the backend is running.",
+        summary:
+          "Something went wrong while contacting the research agent. Please make sure the backend is running.",
         sources: [],
-        tools_used: []
+        tools_used: [],
+        image_b64: null,
       });
     } finally {
       setLoading(false);
     }
   }
+
+  const imageSrc =
+    output?.image_b64 ? `data:image/png;base64,${output.image_b64}` : null;
 
   return (
     <main className="min-h-screen px-4 py-10">
@@ -66,7 +75,6 @@ export default function Home() {
           <h1 className="mt-4 text-3xl font-semibold tracking-tight">
             Research Agent UI
           </h1>
-          
         </header>
 
         {/* Input card */}
@@ -79,9 +87,10 @@ export default function Home() {
             <textarea
               className="w-full resize-y rounded-xl border border-white/10 bg-black/20 p-3 text-sm outline-none placeholder:text-white/40 focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-400/20"
               rows={5}
-              placeholder="What can I help you research?"
+              placeholder='Ask for research... or ask "show me a picture of ..."'
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              maxLength={500}
             />
 
             <div className="flex items-center gap-2">
@@ -121,9 +130,7 @@ export default function Home() {
           </div>
 
           {!output ? (
-            <p className="text-sm text-white/60">
-              Submit a query to see results.
-            </p>
+            <p className="text-sm text-white/60">Submit a query to see results.</p>
           ) : (
             <div className="space-y-4 text-sm">
               <div className="rounded-xl border border-white/10 bg-black/20 p-4">
@@ -137,7 +144,40 @@ export default function Home() {
                 <div className="text-xs font-semibold uppercase tracking-wide text-white/50">
                   Summary
                 </div>
-                <div className="mt-1 text-white/90">{output.summary}</div>
+                <div className="mt-1 whitespace-pre-wrap text-white/90">
+                  {output.summary}
+                </div>
+              </div>
+
+              {/* Image block */}
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-white/50">
+                    Image
+                  </div>
+                  <span className="text-xs text-white/50">
+                    {imageSrc ? "Generated" : "None"}
+                  </span>
+                </div>
+
+                {!imageSrc ? (
+                  <p className="text-sm text-white/60">
+                    Ask for an image (e.g., “Generate a picture of a medieval
+                    library”).
+                  </p>
+                ) : (
+                  <div className="overflow-hidden rounded-xl border border-white/10">
+                    <Image
+                      src={imageSrc}
+                      alt="Generated"
+                      width={1024}
+                      height={1024}
+                      className="h-auto w-full"
+                      unoptimized
+                      priority={false}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -145,43 +185,55 @@ export default function Home() {
                   <div className="text-xs font-semibold uppercase tracking-wide text-white/50">
                     Sources
                   </div>
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-white/85">
-                    {output.sources.map((s, i) => (
-                      <li key={i}>
-                        <a
-                          href={s}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-indigo-200 hover:text-indigo-100"
-                        >
-                          {s}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+
+                  {output.sources.length === 0 ? (
+                    <p className="mt-2 text-sm text-white/60">
+                      No sources returned.
+                    </p>
+                  ) : (
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-white/85">
+                      {output.sources.map((s, i) => (
+                        <li key={i}>
+                          <a
+                            href={s}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="break-all text-indigo-200 hover:text-indigo-100"
+                          >
+                            {s}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
                 <div className="rounded-xl border border-white/10 bg-black/20 p-4">
                   <div className="text-xs font-semibold uppercase tracking-wide text-white/50">
                     Tools used
                   </div>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {output.tools_used.map((t, i) => (
-                      <span
-                        key={i}
-                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
+
+                  {output.tools_used.length === 0 ? (
+                    <p className="mt-2 text-sm text-white/60">
+                      No tools used.
+                    </p>
+                  ) : (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {output.tools_used.map((t, i) => (
+                        <span
+                          key={i}
+                          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           )}
         </section>
-
-        
       </div>
     </main>
   );
