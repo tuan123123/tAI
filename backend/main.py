@@ -8,7 +8,7 @@ from langchain_core.messages import HumanMessage
 from langchain.agents import create_agent
 from langchain.agents.structured_output import ProviderStrategy
 
-from tools import search_tool, wiki_tool, save_tool
+from tools import search_tool, wiki_tool, save_tool, image_tool
 
 load_dotenv()
 
@@ -38,7 +38,7 @@ Rules:
 
 agent = create_agent(
     model=llm,
-    tools=[search_tool, wiki_tool, save_tool],
+    tools=[search_tool, wiki_tool, save_tool, image_tool],
     system_prompt=SYSTEM_PROMPT,  
     response_format=ProviderStrategy(ResearchResponse),  
 )
