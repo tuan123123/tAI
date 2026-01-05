@@ -20,6 +20,7 @@ class ResearchResponse(BaseModel):
     summary: str
     sources: list[str]
     tools_used: list[str]
+    image_b64: str | None = None
 
 
 class UserQuery(BaseModel):
@@ -34,6 +35,8 @@ Rules:
 - Be concise and factual.
 - Put sources as URLs in the sources list.
 - Fill tools_used with the tool names you called.
+- If the user asks for a picture/image/diagram, call the image tool and put the returned base64 string in image_b64.
+- If no image was requested, set image_b64 to null.
 """
 
 agent = create_agent(
