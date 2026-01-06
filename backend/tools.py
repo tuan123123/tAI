@@ -30,9 +30,8 @@ wiki_tool = WikipediaQueryRun(api_wrapper=_api_wrapper)
 
 @tool("image")
 def image_tool(prompt: str) -> str:
-    """Generate an image from a text prompt and return it as base64 PNG."""
+    """Generate an image from a text prompt and return base64 PNG."""
     client = OpenAI()
-
     result = client.images.generate(
         model="gpt-image-1.5",
         prompt=prompt,
