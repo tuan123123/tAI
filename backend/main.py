@@ -2,18 +2,26 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
+from datetime import datetime
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 from langchain.agents import create_agent
 from langchain.agents.structured_output import ProviderStrategy
-
+import os, json
 from tools import search_tool, wiki_tool, save_tool, image_tool, retrieve_tool
 
 load_dotenv()
 
 llm = ChatOpenAI(model="gpt-4.1")
 
+def log_example(query: str, response: dict, filename: str = "data/logs.jsonl"):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, "a", encoding="utf-8") as f:
+        f.write(json.dumps({
+            "ts": datetime.now().isoformat(),
+            "query": query,
+            "response": response
+        }, ensure_ascii=False) + "\n")
 
 class ResearchResponse(BaseModel):
     topic: str
@@ -62,4 +70,6 @@ app.add_middleware(
 @app.post("/api/research", response_model=ResearchResponse)
 async def run_research(user_input: UserQuery):
     result = agent.invoke({"messages": [HumanMessage(content=user_input.query)]})
-    return result["structured_response"]
+    structured = result["structured_response"]
+    log_example(user_input.query, structured)
+    return structured
