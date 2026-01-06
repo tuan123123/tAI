@@ -12,7 +12,7 @@ from tools import search_tool, wiki_tool, save_tool, image_tool, retrieve_tool
 
 load_dotenv()
 
-llm = ChatOpenAI(model="gpt-4.1")
+llm = ChatOpenAI(model="ft:gpt-4.1-mini-2025-04-14:personal::CuxavVmx")
 
 def log_example(query: str, response: dict, filename: str = "data/logs.jsonl"):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
