@@ -8,7 +8,7 @@ from langchain_core.messages import HumanMessage
 from langchain.agents import create_agent
 from langchain.agents.structured_output import ProviderStrategy
 
-from tools import search_tool, wiki_tool, save_tool, image_tool
+from tools import search_tool, wiki_tool, save_tool, image_tool, retrieve_tool
 
 load_dotenv()
 
@@ -37,11 +37,14 @@ Rules:
 - Fill tools_used with the tool names you called.
 - If the user asks for a picture/image/diagram, call the image tool and put the returned base64 string in image_b64.
 - If no image was requested, set image_b64 to null.
+- Always call retrieve first for factual questions.
+- If retrieve returns NO_RETRIEVAL_RESULTS, then you may use search or wikipedia.
+- Never invent sources. If you can’t find sources, return an empty sources list.
 """
 
 agent = create_agent(
     model=llm,
-    tools=[search_tool, wiki_tool, save_tool, image_tool],
+    tools=[search_tool, wiki_tool, save_tool, image_tool, retrieve_tool],
     system_prompt=SYSTEM_PROMPT,  
     response_format=ProviderStrategy(ResearchResponse),  
 )
