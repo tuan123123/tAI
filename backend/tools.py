@@ -3,7 +3,7 @@ from openai import OpenAI
 from langchain.tools import tool
 from langchain_community.tools import DuckDuckGoSearchRun, WikipediaQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
-
+from rag import build_or_load_vectorstore
 
 @tool("save")
 def save_tool(data: str, filename: str = "research_output.txt") -> str:
@@ -38,3 +38,25 @@ def image_tool(prompt: str) -> str:
         size="1024x1024"
     )
     return result.data[0].b64_json
+_vectorstore = None
+
+def _vs():
+    global _vectorstore
+    if _vectorstore is None:
+        _vectorstore = build_or_load_vectorstore()
+    return _vectorstore
+
+@tool("retrieve")
+def retrieve_tool(query: str) -> str:
+    """Retrieve relevant passages from local documents for grounded answers."""
+    docs = _vs().similarity_search(query, k=4)
+    if not docs:
+        return "NO_RETRIEVAL_RESULTS"
+
+    out = []
+    for i, d in enumerate(docs, start=1):
+        src = d.metadata.get("source", "local-doc")
+        page = d.metadata.get("page")
+        loc = f"{src}" + (f"#page={page}" if page is not None else "")
+        out.append(f"[{i}] {loc}\n{d.page_content}")
+    return "\n\n".join(out)
