@@ -36,5 +36,4 @@ def build_or_load_vectorstore() -> Chroma:
         embedding=embeddings,
         persist_directory=CHROMA_DIR,
     )
-    vs.persist()
     return vs

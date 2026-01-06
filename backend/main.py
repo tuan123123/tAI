@@ -12,7 +12,7 @@ from tools import search_tool, wiki_tool, save_tool, image_tool, retrieve_tool
 
 load_dotenv()
 
-llm = ChatOpenAI(model="gpt-5-nano")
+llm = ChatOpenAI(model="gpt-4.1")
 
 
 class ResearchResponse(BaseModel):

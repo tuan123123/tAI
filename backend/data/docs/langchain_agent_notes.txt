@@ -1,0 +1,26 @@
+Title: LangChain Agents Overview
+
+LangChain agents allow language models to:
+- Decide when to use tools
+- Call tools with arguments
+- Combine tool outputs into final answers
+
+Common tools in a research agent:
+- Search tools (DuckDuckGo)
+- Wikipedia lookup
+- Retrieval tools (RAG)
+- Image generation tools
+- Save or logging tools
+
+Agent behavior is influenced by:
+- System prompt instructions
+- Tool descriptions and docstrings
+- Model capabilities
+- Fine-tuning (optional)
+
+Agents are best used when:
+- Tasks require multiple steps
+- External data is needed
+- Decisions must be dynamic
+
+Agents should be guided with clear rules to avoid hallucination.

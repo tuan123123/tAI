@@ -1,0 +1,25 @@
+Title: FastAPI Backend Notes
+
+FastAPI is a Python web framework for building APIs.
+
+Key concepts:
+- Routes are defined with decorators (@app.post, @app.get)
+- Pydantic models validate request and response data
+- Uvicorn runs the server
+
+Typical development command:
+uvicorn main:app --reload
+
+CORS middleware is required when:
+- Frontend and backend run on different ports
+- Browser enforces cross-origin restrictions
+
+FastAPI works well with:
+- LangChain
+- OpenAI APIs
+- Async request handling
+
+FastAPI is commonly used for:
+- AI backends
+- Microservices
+- Internal APIs

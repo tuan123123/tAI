@@ -1,0 +1,30 @@
+Title: Fine-tuning Language Models
+
+Fine-tuning is the process of training a language model on example inputs and
+outputs so it learns a specific behavior or style.
+
+Fine-tuning is useful for:
+- Consistent output format (JSON, schemas)
+- Specific tone (professional, funny, concise)
+- Tool usage reliability
+- Reducing unwanted verbosity
+
+Fine-tuning is NOT good for:
+- Teaching new facts
+- Keeping knowledge up to date
+- Replacing search or retrieval
+
+Fine-tuning data format:
+- JSONL file
+- Each line contains messages:
+  - system prompt
+  - user message
+  - assistant response
+
+Best practice:
+- Use RAG for knowledge
+- Use fine-tuning for behavior
+
+In production systems:
+RAG feeds the brain.
+Fine-tuning trains the personality.
