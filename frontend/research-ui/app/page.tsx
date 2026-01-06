@@ -9,7 +9,7 @@ type AgentOutput = {
   summary: string;
   sources: string[];
   tools_used: string[];
-  image_b64?: string | null; // ✅ new
+  image_b64?: string | null; 
 };
 
 export default function Home() {
@@ -23,9 +23,9 @@ export default function Home() {
 
     setLoading(true);
     setOutput(null);
-
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/research", {
+      const res = await fetch(`${API_BASE}/api/research`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
@@ -166,17 +166,16 @@ export default function Home() {
                     library”).
                   </p>
                 ) : (
-                  <div className="overflow-hidden rounded-xl border border-white/10">
-                    <Image
-                      src={imageSrc}
-                      alt="Generated"
-                      width={1024}
-                      height={1024}
-                      className="h-auto w-full"
-                      unoptimized
-                      priority={false}
-                    />
-                  </div>
+                  <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5 p-2">
+                      <Image
+                        src={imageSrc}
+                        alt="Generated"
+                        width={1024}
+                        height={1024}
+                        className="block h-auto w-full"
+                        unoptimized
+                      />
+                    </div>
                 )}
               </div>
 

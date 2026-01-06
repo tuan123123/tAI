@@ -14,8 +14,13 @@ load_dotenv()
 
 llm = ChatOpenAI(model="ft:gpt-4.1-mini-2025-04-14:personal::CuxavVmx")
 
-def log_example(query: str, response: dict, filename: str = "data/logs.jsonl"):
+def log_example(query: str, response, filename: str = "data/logs.jsonl"):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
+    if hasattr(response, "model_dump"):         
+        response = response.model_dump()
+    elif hasattr(response, "dict"):             
+        response = response.dict()
+
     with open(filename, "a", encoding="utf-8") as f:
         f.write(json.dumps({
             "ts": datetime.now().isoformat(),
@@ -45,9 +50,11 @@ Rules:
 - Fill tools_used with the tool names you called.
 - If the user asks for a picture/image/diagram, call the image tool and put the returned base64 string in image_b64.
 - If no image was requested, set image_b64 to null.
-- Always call retrieve first for factual questions.
-- If retrieve returns NO_RETRIEVAL_RESULTS, then you may use search or wikipedia.
-- Never invent sources. If you can’t find sources, return an empty sources list.
+- Try to use as much tools as possible to get accurate information.
+- Use retrieve first ONLY when the question is likely answered by local docs.
+- For general encyclopedic definitions (e.g., animals, basic concepts), prefer wikipedia.
+- For recent events or “latest”, prefer search.
+- If retrieve returns NO_RETRIEVAL_RESULTS, then use wikipedia or search.
 """
 
 agent = create_agent(
@@ -58,18 +65,34 @@ agent = create_agent(
 )
 
 app = FastAPI()
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    os.getenv("FRONTEND_URL"),  
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[o for o in origins if o],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
+@app.get("/")
+def root():
+    return {"status": "ok", "docs": "/docs", "endpoint": "POST /api/research"}
 @app.post("/api/research", response_model=ResearchResponse)
 async def run_research(user_input: UserQuery):
     result = agent.invoke({"messages": [HumanMessage(content=user_input.query)]})
     structured = result["structured_response"]
-    log_example(user_input.query, structured)
-    return structured
+
+    # Convert for logging + returning
+    if hasattr(structured, "model_dump"):
+        structured_dict = structured.model_dump()
+    else:
+        structured_dict = structured.dict()
+
+    log_example(user_input.query, structured_dict)
+    return structured_dict
+

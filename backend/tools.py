@@ -49,14 +49,18 @@ def _vs():
 @tool("retrieve")
 def retrieve_tool(query: str) -> str:
     """Retrieve relevant passages from local documents for grounded answers."""
-    docs = _vs().similarity_search(query, k=4)
-    if not docs:
+    results = _vs().similarity_search_with_score(query, k=4)
+    if not results:
         return "NO_RETRIEVAL_RESULTS"
+    MAX_DISTANCE = 0.9
+    filtered = [(doc, score) for (doc, score) in results if score <= MAX_DISTANCE]
 
+    if not filtered:
+        return "NO_RETRIEVAL_RESULTS"
     out = []
-    for i, d in enumerate(docs, start=1):
+    for i, (d, score) in enumerate(filtered, start=1):
         src = d.metadata.get("source", "local-doc")
         page = d.metadata.get("page")
         loc = f"{src}" + (f"#page={page}" if page is not None else "")
-        out.append(f"[{i}] {loc}\n{d.page_content}")
+        out.append(f"[{i}] {loc} (score={score:.3f})\n{d.page_content}")
     return "\n\n".join(out)
