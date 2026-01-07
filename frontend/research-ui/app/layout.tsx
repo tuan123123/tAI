@@ -1,11 +1,4 @@
-// app/layout.tsx
-import type { Metadata } from "next";
-
-
-export const metadata: Metadata = {
-  title: "Bee Research Agent",
-  description: "Honey-sweet AI research assistant",
-};
+import "./globals.css";
 
 export default function RootLayout({
   children,
@@ -13,11 +6,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        suppressHydrationWarning
-        className="min-h-screen bg-[#080708] text-amber-50 antialiased"
-      >
+    <html lang="en">
+      <body className="min-h-screen bg-black text-white antialiased">
         {children}
       </body>
     </html>

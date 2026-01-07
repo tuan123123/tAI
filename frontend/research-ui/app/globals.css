@@ -1,30 +1,166 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #0b1020;
-  --foreground: #e8eefc;
+  --background: #070816;
+  --foreground: #eaf0ff;
+
+  --card: rgba(255, 255, 255, 0.06);
+  --cardBorder: rgba(255, 255, 255, 0.10);
+
+  --muted: rgba(234, 240, 255, 0.70);
+  --muted2: rgba(234, 240, 255, 0.55);
+
+  --ring: rgba(99, 102, 241, 0.45); /* indigo */
+  --accent: rgba(217, 70, 239, 0.35); /* fuchsia */
+  --accent2: rgba(34, 211, 238, 0.28); /* cyan */
 }
 
 @media (prefers-color-scheme: light) {
   :root {
     --background: #f7f8ff;
     --foreground: #0f172a;
+    --card: rgba(15, 23, 42, 0.04);
+    --cardBorder: rgba(15, 23, 42, 0.10);
+    --muted: rgba(15, 23, 42, 0.72);
+    --muted2: rgba(15, 23, 42, 0.58);
+    --ring: rgba(79, 70, 229, 0.35);
+    --accent: rgba(192, 38, 211, 0.22);
+    --accent2: rgba(6, 182, 212, 0.20);
   }
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji",
+    "Segoe UI Emoji";
   -webkit-fontsmoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
+/* ✨ Vibrant animated aurora background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(closest-side at 20% 10%, var(--ring), transparent 55%),
+    radial-gradient(closest-side at 85% 30%, var(--accent), transparent 60%),
+    radial-gradient(closest-side at 35% 90%, var(--accent2), transparent 58%),
+    radial-gradient(closest-side at 70% 85%, rgba(16, 185, 129, 0.18), transparent 62%),
+    radial-gradient(closest-side at 50% 50%, rgba(255, 255, 255, 0.06), transparent 65%);
+  filter: blur(42px) saturate(120%);
+  opacity: 0.95;
+  transform: translate3d(0, 0, 0);
+  animation: auroraShift 12s ease-in-out infinite;
+}
 
+/* subtle vignette */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(80% 70% at 50% 20%, transparent 0%, rgba(0, 0, 0, 0.35) 70%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* film grain */
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.045) 1px, transparent 0);
+    background-size: 26px 26px;
+  }
+}
+
+@keyframes auroraShift {
+  0%   { transform: translate3d(-2%, -1%, 0) scale(1); }
+  50%  { transform: translate3d(2%, 1.5%, 0) scale(1.03); }
+  100% { transform: translate3d(-2%, -1%, 0) scale(1); }
+}
+
+/* nicer selection */
 ::selection {
   background: rgba(99, 102, 241, 0.35);
 }
 
+/* links: glow on hover */
 a {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: none;
+}
+a.link {
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(165, 180, 252, 0.45);
+}
+a.link:hover {
+  text-decoration-color: rgba(165, 180, 252, 0.85);
+  text-shadow: 0 0 18px rgba(99, 102, 241, 0.35);
+}
+
+/* focus rings */
+:focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.45);
+  outline-offset: 3px;
+}
+
+/* ===== Reusable animation helpers ===== */
+@keyframes floaty {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+.float {
+  animation: floaty 6s ease-in-out infinite;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeInUp 420ms ease-out both;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.98); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop {
+  animation: pop 220ms ease-out both;
+}
+
+@keyframes shine {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.shine {
+  background-size: 200% 200%;
+  animation: shine 5s ease infinite;
+}
+
+/* Reduce motion support */
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  .float,
+  .fade-in,
+  .pop,
+  .shine {
+    animation: none !important;
+  }
 }
