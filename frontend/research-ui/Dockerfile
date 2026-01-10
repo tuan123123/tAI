@@ -6,9 +6,8 @@ RUN npm ci
 
 COPY . .
 
-
-ARG NEXT_PUBLIC_API_BASE_URL
-ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+# Ensure Next sees env during build
+COPY .env.production .env.production
 
 RUN npm run build
 
@@ -24,4 +23,4 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
-CMD ["sh", "-c", "npm run start -- -p ${PORT}"]
+CMD ["sh", "-c", "npm run start -- -p $PORT"]
