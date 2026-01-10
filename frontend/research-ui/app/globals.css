@@ -45,7 +45,7 @@ body {
   text-rendering: geometricPrecision;
 }
 
-/* ✨ Vibrant animated aurora background */
+
 body::before {
   content: "";
   position: fixed;
@@ -64,7 +64,7 @@ body::before {
   animation: auroraShift 12s ease-in-out infinite;
 }
 
-/* subtle vignette */
+
 body::after {
   content: "";
   position: fixed;
@@ -74,7 +74,7 @@ body::after {
   background: radial-gradient(80% 70% at 50% 20%, transparent 0%, rgba(0, 0, 0, 0.35) 70%, rgba(0, 0, 0, 0.55) 100%);
 }
 
-/* film grain */
+
 @media (prefers-reduced-motion: no-preference) {
   body {
     background-image:
@@ -89,12 +89,12 @@ body::after {
   100% { transform: translate3d(-2%, -1%, 0) scale(1); }
 }
 
-/* nicer selection */
+
 ::selection {
   background: rgba(99, 102, 241, 0.35);
 }
 
-/* links: glow on hover */
+
 a {
   color: inherit;
   text-decoration: none;
@@ -112,13 +112,13 @@ a.link:hover {
   text-shadow: 0 0 18px rgba(99, 102, 241, 0.35);
 }
 
-/* focus rings */
+
 :focus-visible {
   outline: 2px solid rgba(99, 102, 241, 0.45);
   outline-offset: 3px;
 }
 
-/* ===== Reusable animation helpers ===== */
+
 @keyframes floaty {
   0% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
@@ -154,7 +154,7 @@ a.link:hover {
   animation: shine 5s ease infinite;
 }
 
-/* Reduce motion support */
+
 @media (prefers-reduced-motion: reduce) {
   body::before,
   .float,
