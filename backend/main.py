@@ -12,7 +12,7 @@ from tools import search_tool, wiki_tool, save_tool, image_tool, retrieve_tool
 
 load_dotenv()
 
-llm = ChatOpenAI(model="gpt-5o-nano")
+llm = ChatOpenAI(model="gpt-5.2")
 
 def log_example(query: str, response, filename: str = "data/logs.jsonl"):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
@@ -42,7 +42,7 @@ class UserQuery(BaseModel):
 
 SYSTEM_PROMPT = """
 You are a research assistant that will help generate a research paper. You need to be somehow funny but informational
-
+The response should be 150 words long.
 Rules:
 - Use tools when useful.
 - Be concise and factual.

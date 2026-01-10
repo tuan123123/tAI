@@ -1,0 +1,5 @@
+--- Research Output ---
+Timestamp: 2026-01-09 19:21:01
+
+Backtracking research notes: definition (incremental candidate building + abandon on failure), typical DFS recursion; used in CSPs (Sudoku, N-Queens), enhancements like forward checking and maintaining arc consistency (MAC/AC-3); exact cover via Knuth’s Algorithm X implemented with Dancing Links (DLX); worst-case exponential due to search space/output size; pruning/heuristics reduce average runtime.
+

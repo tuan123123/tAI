@@ -54,7 +54,6 @@ def retrieve_tool(query: str) -> str:
         return "NO_RETRIEVAL_RESULTS"
     MAX_DISTANCE = 0.9
     filtered = [(doc, score) for (doc, score) in results if score <= MAX_DISTANCE]
-
     if not filtered:
         return "NO_RETRIEVAL_RESULTS"
     out = []
