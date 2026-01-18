@@ -86,15 +86,15 @@ tAI/
 }
 ```
 
-Local Backend Setup
-cd backend
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-Create a .env file:
-OPENAI_API_KEY=your_key_here
-Run locally:
-uvicorn main:app --reload
+# Local Backend Setup
+-cd backend
+-python -m venv .venv
+-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+-pip install -r requirements.txt
+# Create a .env file:
+-OPENAI_API_KEY=your_key_here
+# Run locally:
+-uvicorn main:app --reload
 
 
 
