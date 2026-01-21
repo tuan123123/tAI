@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 type AgentOutput = {
   topic: string;
@@ -69,7 +70,9 @@ function Toast({
         >
           <div className="rounded-2xl border border-white/10 bg-black/50 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl">
             <div className="text-sm font-semibold text-white/90">{title}</div>
-            {message ? <div className="mt-1 text-sm text-white/70">{message}</div> : null}
+            {message ? (
+              <div className="mt-1 text-sm text-white/70">{message}</div>
+            ) : null}
           </div>
         </motion.div>
       ) : null}
@@ -83,7 +86,21 @@ const cardIn = {
 };
 
 export default function Home() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const [API_BASE, setApiBase] = useState<string>("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch("/api/config", { cache: "no-store" });
+        const d = await r.json();
+        setApiBase(d?.apiBaseUrl ?? "");
+        console.log("CONFIG apiBaseUrl =", d?.apiBaseUrl);
+      } catch (e) {
+        console.error("Failed to load /api/config", e);
+        setApiBase("");
+      }
+    })();
+  }, []);
 
   const [query, setQuery] = useState("");
   const [output, setOutput] = useState<AgentOutput | null>(null);
@@ -92,8 +109,14 @@ export default function Home() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(true);
 
-  const [activeTab, setActiveTab] = useState<"summary" | "sources" | "tools">("summary");
-  const [toast, setToast] = useState<{ open: boolean; title: string; msg?: string }>({
+  const [activeTab, setActiveTab] = useState<"summary" | "sources" | "tools">(
+    "summary",
+  );
+  const [toast, setToast] = useState<{
+    open: boolean;
+    title: string;
+    msg?: string;
+  }>({
     open: false,
     title: "",
     msg: "",
@@ -116,7 +139,7 @@ export default function Home() {
       "Give a balanced overview of EV battery recycling",
       "Create a short research brief on GLP-1 medications",
     ],
-    []
+    [],
   );
 
   async function handleSubmit(e?: React.FormEvent) {
@@ -134,7 +157,7 @@ export default function Home() {
 
     try {
       if (!API_BASE) {
-        throw new Error("NEXT_PUBLIC_API_BASE_URL is not set.");
+        throw new Error("API base URL is not set (check /api/config).");
       }
 
       const res = await fetch(`${API_BASE}/api/research`, {
@@ -158,10 +181,10 @@ export default function Home() {
             createdAt: Date.now(),
           },
           ...prev,
-        ].slice(0, 20)
+        ].slice(0, 20),
       );
     } catch (err: unknown) {
-  if (err instanceof DOMException && err.name === "AbortError") {
+      if (err instanceof DOMException && err.name === "AbortError") {
         setToast({ open: true, title: "Stopped", msg: "Request cancelled." });
         setOutput({
           topic: "Cancelled",
@@ -179,7 +202,11 @@ export default function Home() {
           tools_used: [],
           image_b64: null,
         });
-        setToast({ open: true, title: "Request failed", msg: "Check backend/API base URL." });
+        setToast({
+          open: true,
+          title: "Request failed",
+          msg: "Check backend/API base URL.",
+        });
       }
     } finally {
       setLoading(false);
@@ -198,7 +225,11 @@ export default function Home() {
       await navigator.clipboard.writeText(text);
       setToast({ open: true, title: "Copied", msg: okMsg });
     } catch {
-      setToast({ open: true, title: "Copy failed", msg: "Clipboard permission denied." });
+      setToast({
+        open: true,
+        title: "Copy failed",
+        msg: "Clipboard permission denied.",
+      });
     }
   }
 
@@ -235,13 +266,21 @@ export default function Home() {
         <motion.div
           initial="hidden"
           animate="show"
-          variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            show: { opacity: 1, y: 0 },
+          }}
           transition={{ duration: 0.5 }}
           className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between"
         >
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 backdrop-blur-xl">
-              <span className={cn("h-2 w-2 rounded-full", loading ? "bg-amber-400" : "bg-emerald-400")} />
+              <span
+                className={cn(
+                  "h-2 w-2 rounded-full",
+                  loading ? "bg-amber-400" : "bg-emerald-400",
+                )}
+              />
               <span>{loading ? "Working…" : "Online"}</span>
               <span className="mx-1 text-white/30">•</span>
               <span className="text-white/60"></span>
@@ -251,7 +290,7 @@ export default function Home() {
               tAI
             </h1>
             <p className="mt-2 max-w-xl text-sm text-white/70">
-              Deep-dive summaries, citations, tools used, and optional image. 
+              Deep-dive summaries, citations, tools used, and optional image.
             </p>
           </div>
 
@@ -290,7 +329,9 @@ export default function Home() {
                 className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-black/40 backdrop-blur-xl"
               >
                 <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-white/85">Recent</h2>
+                  <h2 className="text-sm font-semibold text-white/85">
+                    Recent
+                  </h2>
                   <span className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-xs text-white/60">
                     {history.length}/20
                   </span>
@@ -314,9 +355,13 @@ export default function Home() {
                         }}
                         className="w-full rounded-2xl border border-white/10 bg-black/20 p-3 text-left transition hover:bg-white/5"
                       >
-                        <div className="line-clamp-2 text-sm text-white/85">{h.query}</div>
+                        <div className="line-clamp-2 text-sm text-white/85">
+                          {h.query}
+                        </div>
                         <div className="mt-1 flex items-center justify-between text-xs text-white/50">
-                          <span className="truncate">{h.output.topic || "Untitled"}</span>
+                          <span className="truncate">
+                            {h.output.topic || "Untitled"}
+                          </span>
                           <span>{formatTime(h.createdAt)}</span>
                         </div>
                       </motion.button>
@@ -337,7 +382,11 @@ export default function Home() {
                         onClick={() => {
                           setQuery(ex);
                           textareaRef.current?.focus();
-                          setToast({ open: true, title: "Loaded", msg: "Prompt inserted." });
+                          setToast({
+                            open: true,
+                            title: "Loaded",
+                            msg: "Prompt inserted.",
+                          });
                         }}
                         className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/75 hover:bg-white/10"
                       >
@@ -363,10 +412,16 @@ export default function Home() {
               <form onSubmit={(e) => handleSubmit(e)} className="space-y-3">
                 <div className="flex items-end justify-between gap-3">
                   <div>
-                    <div className="text-sm font-semibold text-white/90">Ask anything</div>
-                    <div className="text-xs text-white/60">Try “compare…”, “summarize…”, or “generate a picture…”</div>
+                    <div className="text-sm font-semibold text-white/90">
+                      Ask anything
+                    </div>
+                    <div className="text-xs text-white/60">
+                      Try “compare…”, “summarize…”, or “generate a picture…”
+                    </div>
                   </div>
-                  <div className="text-xs text-white/50">{query.trim().length}/500</div>
+                  <div className="text-xs text-white/50">
+                    {query.trim().length}/500
+                  </div>
                 </div>
 
                 <div className="relative">
@@ -390,7 +445,7 @@ export default function Home() {
                       "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium shadow-lg transition",
                       canSubmit
                         ? "bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-cyan-400 text-white shadow-fuchsia-500/20 hover:brightness-110"
-                        : "cursor-not-allowed bg-white/10 text-white/40"
+                        : "cursor-not-allowed bg-white/10 text-white/40",
                     )}
                   >
                     {loading ? <Spinner /> : null}
@@ -407,7 +462,7 @@ export default function Home() {
                       "rounded-2xl border px-4 py-2 text-sm transition",
                       loading
                         ? "border-white/10 bg-white/5 text-white/85 hover:bg-white/10"
-                        : "cursor-not-allowed border-white/5 bg-white/5 text-white/30"
+                        : "cursor-not-allowed border-white/5 bg-white/5 text-white/30",
                     )}
                   >
                     Stop
@@ -448,15 +503,17 @@ export default function Home() {
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-semibold text-white/90">Output</h2>
+                  <h2 className="text-sm font-semibold text-white/90">
+                    Output
+                  </h2>
                   <span
                     className={cn(
                       "rounded-full border px-2 py-0.5 text-xs",
                       loading
                         ? "border-amber-500/20 bg-amber-500/10 text-amber-100/80"
                         : output
-                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-100/80"
-                        : "border-white/10 bg-white/5 text-white/60"
+                          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-100/80"
+                          : "border-white/10 bg-white/5 text-white/60",
                     )}
                   >
                     {loading ? "Working" : output ? "Ready" : "Waiting"}
@@ -469,12 +526,15 @@ export default function Home() {
                     whileTap={{ scale: output?.summary ? 0.98 : 1 }}
                     type="button"
                     disabled={!output?.summary}
-                    onClick={() => output?.summary && copyText(output.summary, "Summary copied.")}
+                    onClick={() =>
+                      output?.summary &&
+                      copyText(output.summary, "Summary copied.")
+                    }
                     className={cn(
                       "rounded-2xl border px-3 py-1.5 text-xs transition",
                       output?.summary
                         ? "border-white/10 bg-white/5 text-white/85 hover:bg-white/10"
-                        : "cursor-not-allowed border-white/5 bg-white/5 text-white/30"
+                        : "cursor-not-allowed border-white/5 bg-white/5 text-white/30",
                     )}
                   >
                     Copy summary
@@ -494,12 +554,14 @@ export default function Home() {
                     whileHover={{ y: -1 }}
                     whileTap={{ scale: 0.98 }}
                     type="button"
-                    onClick={() => setActiveTab(t.id as "summary" | "sources" | "tools")}
+                    onClick={() =>
+                      setActiveTab(t.id as "summary" | "sources" | "tools")
+                    }
                     className={cn(
                       "rounded-full border px-3 py-1 text-xs transition",
                       activeTab === t.id
                         ? "border-fuchsia-300/30 bg-fuchsia-500/15 text-white"
-                        : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+                        : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
                     )}
                   >
                     {t.label}
@@ -521,13 +583,21 @@ export default function Home() {
                 {/* Text */}
                 <div className="space-y-4">
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-white/45">Topic</div>
-                    <div className="mt-1 text-white/90">{loading ? "…" : output?.topic || "—"}</div>
+                    <div className="text-xs font-semibold uppercase tracking-wide text-white/45">
+                      Topic
+                    </div>
+                    <div className="mt-1 text-white/90">
+                      {loading ? "…" : output?.topic || "—"}
+                    </div>
                   </div>
 
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                     <div className="text-xs font-semibold uppercase tracking-wide text-white/45">
-                      {activeTab === "summary" ? "Summary" : activeTab === "sources" ? "Sources" : "Tools used"}
+                      {activeTab === "summary"
+                        ? "Summary"
+                        : activeTab === "sources"
+                          ? "Sources"
+                          : "Tools used"}
                     </div>
 
                     <AnimatePresence mode="wait">
@@ -547,18 +617,25 @@ export default function Home() {
                             <div className="h-4 w-9/12 animate-pulse rounded bg-white/10" />
                           </div>
                         ) : !output ? (
-                          <p className="text-sm text-white/65">Submit a query to see results.</p>
+                          <p className="text-sm text-white/65">
+                            Submit a query to see results.
+                          </p>
                         ) : activeTab === "summary" ? (
                           <div className="whitespace-pre-wrap text-sm leading-relaxed text-white/85">
                             {output.summary || "—"}
                           </div>
                         ) : activeTab === "sources" ? (
                           output.sources.length === 0 ? (
-                            <p className="text-sm text-white/65">No sources returned.</p>
+                            <p className="text-sm text-white/65">
+                              No sources returned.
+                            </p>
                           ) : (
                             <ul className="space-y-2">
                               {output.sources.map((s, i) => (
-                                <li key={i} className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm">
+                                <li
+                                  key={i}
+                                  className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm"
+                                >
                                   <a
                                     href={s}
                                     target="_blank"
@@ -572,7 +649,9 @@ export default function Home() {
                             </ul>
                           )
                         ) : output.tools_used.length === 0 ? (
-                          <p className="text-sm text-white/65">No tools used.</p>
+                          <p className="text-sm text-white/65">
+                            No tools used.
+                          </p>
                         ) : (
                           <div className="flex flex-wrap gap-2">
                             {output.tools_used.map((t, i) => (
@@ -594,19 +673,31 @@ export default function Home() {
                 <div className="space-y-4">
                   <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
                     <div className="mb-2 flex items-center justify-between">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-white/45">Image</div>
-                      <span className="text-xs text-white/50">{loading ? "…" : imageSrc ? "Generated" : "None"}</span>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-white/45">
+                        Image
+                      </div>
+                      <span className="text-xs text-white/50">
+                        {loading ? "…" : imageSrc ? "Generated" : "None"}
+                      </span>
                     </div>
 
                     {!imageSrc ? (
                       <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/65">
-                        Ask for an image, e.g. <span className="text-white/80">“Generate a picture of a medieval library”</span>.
+                        Ask for an image, e.g.{" "}
+                        <span className="text-white/80">
+                          “Generate a picture of a medieval library”
+                        </span>
+                        .
                       </div>
                     ) : (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 260,
+                          damping: 22,
+                        }}
                         className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
                       >
                         <Image
@@ -637,7 +728,9 @@ export default function Home() {
                   </div>
 
                   <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-black/30 backdrop-blur-xl">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-white/45">Quick actions</div>
+                    <div className="text-xs font-semibold uppercase tracking-wide text-white/45">
+                      Quick actions
+                    </div>
                     <div className="mt-3 grid gap-2">
                       <motion.button
                         whileHover={{ scale: output ? 1.02 : 1 }}
@@ -648,15 +741,19 @@ export default function Home() {
                           const text =
                             `Topic: ${output.topic}\n\n` +
                             `${output.summary}\n\n` +
-                            (output.sources.length ? `Sources:\n- ${output.sources.join("\n- ")}\n\n` : "") +
-                            (output.tools_used.length ? `Tools:\n- ${output.tools_used.join("\n- ")}` : "");
+                            (output.sources.length
+                              ? `Sources:\n- ${output.sources.join("\n- ")}\n\n`
+                              : "") +
+                            (output.tools_used.length
+                              ? `Tools:\n- ${output.tools_used.join("\n- ")}`
+                              : "");
                           copyText(text, "Full report copied.");
                         }}
                         className={cn(
                           "rounded-2xl border px-3 py-2 text-xs transition",
                           output
                             ? "border-white/10 bg-white/5 text-white/85 hover:bg-white/10"
-                            : "cursor-not-allowed border-white/5 bg-white/5 text-white/30"
+                            : "cursor-not-allowed border-white/5 bg-white/5 text-white/30",
                         )}
                       >
                         Copy full report
@@ -665,8 +762,6 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-
-              
             </motion.section>
           </div>
         </div>
